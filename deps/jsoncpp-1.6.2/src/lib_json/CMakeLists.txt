@@ -1,5 +1,5 @@
-OPTION(JSONCPP_LIB_BUILD_SHARED "Build jsoncpp_lib as a shared library." OFF)
-OPTION(JSONCPP_LIB_BUILD_STATIC "Build jsoncpp_lib static library." ON)
+OPTION(JSONCPP_LIB_BUILD_SHARED "Build jsoncpp_lib as a shared library." ON)
+OPTION(JSONCPP_LIB_BUILD_STATIC "Build jsoncpp_lib static library." OFF)
 
 IF(BUILD_SHARED_LIBS)
   SET(JSONCPP_LIB_BUILD_SHARED ON)
