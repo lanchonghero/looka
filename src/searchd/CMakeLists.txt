@@ -1,9 +1,13 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
+FIND_PACKAGE(MMSEG REQUIRED)
+FIND_PACKAGE(MySQL REQUIRED)
+FIND_PACKAGE(LibXml2 REQUIRED)
+
 INCLUDE_DIRECTORIES(
-  /usr/include/mysql
-  /usr/include/libxml2
-  ${MMSEG_PREFIX}/include/mmseg
+  ${MYSQL_INCLUDE_DIR}
+  ${LIBXML2_INCLUDE_DIR}
+  ${MMSEG_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/deps/jsoncpp/include
 )
 
@@ -12,11 +16,11 @@ AUX_SOURCE_DIRECTORY(../ PUB_SRCS)
 AUX_SOURCE_DIRECTORY(../httpserver HTTPSERVER_SRCS)
 
 SET(LIBRARIES
-  libpthread.so
-  libxml2.so
-  ${MMSEG_PREFIX}/lib/libmmseg.a
+  pthread
+  ${LIBXML2_LIBRARIES}
+  ${MYSQL_LIBRARY}
+  ${MMSEG_LIBRARY}
   ${CMAKE_BINARY_DIR}/lib/libjsoncpp.so
-  /usr/lib/x86_64-linux-gnu/libmysqlclient.so
 )
 
 ADD_EXECUTABLE(searchd ${CUR_SRCS} ${PUB_SRCS} ${HTTPSERVER_SRCS})
