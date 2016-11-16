@@ -1,0 +1,49 @@
+# Lan Chong<lanchonghero@163.com>
+# Find the MMSEG includes and library
+#
+#  MMSEG_INCLUDE_DIR - where to find mmseg/Segmenter.h, etc.
+#  MMSEG_LIBRARIES   - List of libraries when using MMSEG.
+#  MMSEG_FOUND       - True if MMSEG found.
+
+IF (MMSEG_INCLUDE_DIR)
+  SET(MMSEG_FIND_QUIETLY TRUE) # be silent if already in cache
+ENDIF (MMSEG_INCLUDE_DIR)
+
+FIND_PATH(MMSEG_INCLUDE_DIR Segmenter.h
+  /usr/local/include
+  /usr/include
+  ${MMSEG_PREFIX}/include/mmseg
+)
+
+SET(MMSEG_NAMES mmseg libmmseg)
+FIND_LIBRARY(MMSEG_LIBRARY
+  NAMES ${MMSEG_NAMES}
+  PATHS /usr/lib /usr/local/lib ${MMSEG_PREFIX}
+  PATH_SUFFIXES mmseg/lib
+)
+
+IF (MMSEG_INCLUDE_DIR AND MMSEG_LIBRARY)
+  SET(MMSEG_FOUND TRUE)
+  SET( MMSEG_LIBRARIES ${MMSEG_LIBRARY} )
+ELSE (MMSEG_INCLUDE_DIR AND MMSEG_LIBRARY)
+  SET(MMSEG_FOUND FALSE)
+  SET( MMSEG_LIBRARIES )
+ENDIF (MMSEG_INCLUDE_DIR AND MMSEG_LIBRARY)
+
+IF (MMSEG_FOUND)
+  IF (NOT MMSEG_FIND_QUIETLY)
+    MESSAGE(STATUS "Found MMSEG: ${MMSEG_LIBRARY}")
+  ENDIF (NOT MMSEG_FIND_QUIETLY)
+ELSE (MMSEG_FOUND)
+  IF (MMSEG_FIND_REQUIRED)
+    MESSAGE(STATUS "Looked for MMSEG libraries named ${MMSEG_NAMES}.")
+    MESSAGE(FATAL_ERROR
+      "Could NOT find MMSEG library\n"
+      "Use -DMMSEG_PREFIX to specify mmseg prefix path.\n")
+  ENDIF (MMSEG_FIND_REQUIRED)
+ENDIF (MMSEG_FOUND)
+
+MARK_AS_ADVANCED(
+  MMSEG_LIBRARY
+  MMSEG_INCLUDE_DIR
+)
