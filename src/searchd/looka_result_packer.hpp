@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include "../looka_log.hpp"
-#include "../looka_utils.hpp"
+#include "../looka_string_utils.hpp"
 #include "../looka_types.hpp"
 #include "../looka_config_source.hpp"
 #include "../looka_inverter.hpp"

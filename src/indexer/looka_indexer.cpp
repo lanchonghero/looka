@@ -3,7 +3,7 @@
 #include "../looka_file.hpp"
 #include "../looka_log.hpp"
 #include "../looka_str2id.hpp"
-#include "../looka_utils.hpp"
+#include "../looka_string_utils.hpp"
 
 LookaIndexer::LookaIndexer(LookaConfigSource* source_cfg, LookaConfigIndex* index_cfg):
   m_source_cfg(source_cfg), m_index_cfg(index_cfg)

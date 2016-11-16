@@ -14,9 +14,9 @@ LookaConfigParser::~LookaConfigParser()
 
 int LookaConfigParser::LoadConfig(const std::string& filename)
 {
-	std::ifstream f(filename.c_str());
-	if (!f)
-		_ERROR_RETURN(-1, "[cannot open configuration file %s]", filename.c_str());
+  std::ifstream f(filename.c_str());
+  if (!f)
+    _ERROR_RETURN(-1, "[cannot open configuration file %s]", filename.c_str());
   
   std::stringstream ss;
   std::string line;
@@ -64,11 +64,11 @@ std::string LookaConfigParser::GetString(
   const std::string& secItem,
   const std::string& defaultValue)
 {
-	std::string r = ReadString(secTag, secName, secItem);
-	if (r.empty()) {
-		r = defaultValue;
-	}
-	return r;
+  std::string r = ReadString(secTag, secName, secItem);
+  if (r.empty()) {
+    r = defaultValue;
+  }
+  return r;
 }
 
 std::vector<std::string> LookaConfigParser::GetStringV(
@@ -85,12 +85,12 @@ int LookaConfigParser::GetInt(
   const std::string& secItem,
   const int& defaultValue)
 {
-	int r = defaultValue;
-	std::string s = ReadString(secTag, secName, secItem);
-	if (!s.empty()) {
-		r = atoi(s.c_str());
-	}
-	return r;
+  int r = defaultValue;
+  std::string s = ReadString(secTag, secName, secItem);
+  if (!s.empty()) {
+    r = atoi(s.c_str());
+  }
+  return r;
 }
 
 std::string LookaConfigParser::GetSectionConf(
@@ -293,36 +293,36 @@ int LookaConfigParser::ParseSectionHead(
 
 bool LookaConfigParser::AnalyseItem(const std::string& line, std::string& item, std::string& value)
 {
-	if (line.empty())
-		return false;
+  if (line.empty())
+    return false;
 
   std::string new_line = line;
   DelComment(new_line);
   Trim(new_line);
 
-	int pos;
-	if ((pos = new_line.find('=')) == -1)
-		return false;
+  int pos;
+  if ((pos = new_line.find('=')) == -1)
+    return false;
 
-	item  = new_line.substr(0, pos);
-	value = new_line.substr(pos + 1);
+  item  = new_line.substr(0, pos);
+  value = new_line.substr(pos + 1);
 
-	Trim(item);
-	RemoveEmphasize(item);
-	if (item.empty()) {
-		return false;
-	}
-	Trim(value);
-	RemoveEmphasize(value);
+  Trim(item);
+  RemoveEmphasize(item);
+  if (item.empty()) {
+    return false;
+  }
+  Trim(value);
+  RemoveEmphasize(value);
 
-	return true;
+  return true;
 }
 
 bool LookaConfigParser::IsEmphasize(const char& c)
 {
-	if (c == '\'' || c == '"')
-		return true;
-	return false;
+  if (c == '\'' || c == '"')
+    return true;
+  return false;
 }
 
 void LookaConfigParser::RemoveEmphasize(std::string &s)
@@ -333,20 +333,20 @@ void LookaConfigParser::RemoveEmphasize(std::string &s)
 
 bool LookaConfigParser::IsSpace(const char& c)
 {
-	if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-		return true;
-	return false;
+  if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+    return true;
+  return false;
 }
 
 void LookaConfigParser::Trim(std::string& s)
 {
-	if (s.empty())
-		return;
-	std::string::iterator it;
-	for (it=s.begin(); it!=s.end() && IsSpace(*it++););
-	s.erase(s.begin(), --it);
-	for (it=s.end(); it!=s.begin() && IsSpace(*--it););
-	s.erase(++it, s.end());
+  if (s.empty())
+    return;
+  std::string::iterator it;
+  for (it=s.begin(); it!=s.end() && IsSpace(*it++););
+  s.erase(s.begin(), --it);
+  for (it=s.end(); it!=s.begin() && IsSpace(*--it););
+  s.erase(++it, s.end());
 }
 
 void LookaConfigParser::DelComment(std::string& s)
@@ -367,7 +367,7 @@ void LookaConfigParser::DelComment(std::string& s)
 
 std::string LookaConfigParser::ToLower(const std::string& s)
 {
-	std::string os(s);
-	transform(os.begin(), os.end(), os.begin(), tolower);  
-	return os;
+  std::string os(s);
+  transform(os.begin(), os.end(), os.begin(), tolower);  
+  return os;
 }

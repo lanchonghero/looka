@@ -1,5 +1,5 @@
 #include "looka_request.hpp"
-#include "../looka_utils.hpp"
+#include "../looka_string_utils.hpp"
 
 LookaRequest::LookaRequest()
 {

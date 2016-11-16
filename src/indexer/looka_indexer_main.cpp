@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 #include "../looka_log.hpp"
-#include "../looka_utils.hpp"
+#include "../looka_string_utils.hpp"
 #include "../looka_mysql_wrapper.hpp"
 #include "../looka_config_parser.hpp"
 #include "../looka_config_source.hpp"

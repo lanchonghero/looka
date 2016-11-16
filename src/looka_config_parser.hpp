@@ -8,10 +8,10 @@
 class LookaConfigParser
 {
 public:
-	LookaConfigParser();
-	virtual ~LookaConfigParser();
+  LookaConfigParser();
+  virtual ~LookaConfigParser();
 
-	int LoadConfig(const std::string& filename);
+  int LoadConfig(const std::string& filename);
   std::vector<std::string> GetSectionTags();
   std::vector<std::string> GetSectionNames(const std::string& secTag);
 

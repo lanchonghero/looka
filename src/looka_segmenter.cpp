@@ -56,9 +56,9 @@ bool LookaSegmenter::Segment(std::string& str, std::vector<SegmentToken>& tokens
 
 bool LookaSegmenter::IsSpace(const char& c)
 {
-	if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-		return true;
-	return false;
+  if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+    return true;
+  return false;
 }
 
 bool LookaSegmenter::IsPunctuation(const std::string& token)
@@ -68,11 +68,11 @@ bool LookaSegmenter::IsPunctuation(const std::string& token)
 
 void LookaSegmenter::Trim(std::string& s)
 {
-	if (s.empty())
-		return;
-	std::string::iterator it;
-	for (it=s.begin(); it!=s.end() && IsSpace(*it++););
-	s.erase(s.begin(), --it);
-	for (it=s.end(); it!=s.begin() && IsSpace(*--it););
-	s.erase(++it, s.end());
+  if (s.empty())
+    return;
+  std::string::iterator it;
+  for (it=s.begin(); it!=s.end() && IsSpace(*it++););
+  s.erase(s.begin(), --it);
+  for (it=s.end(); it!=s.begin() && IsSpace(*--it););
+  s.erase(++it, s.end());
 }

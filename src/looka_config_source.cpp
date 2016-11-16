@@ -1,6 +1,6 @@
 #include <fstream>
 #include "looka_config_source.hpp"
-#include "looka_utils.hpp"
+#include "looka_string_utils.hpp"
 #include "looka_log.hpp"
 
 std::string LookaConfigSource::mSectionTag = "source";
