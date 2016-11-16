@@ -26,7 +26,7 @@ HttpServer::HttpServer(unsigned short _listen_port, size_t _threads_num)
   pthread_mutex_init(&m_epoll_mutex, NULL);
   m_handler = NULL;
 
-  m_server_name = "exhttpd";
+  m_server_name = "lchttpd";
 }
 
 HttpServer::~HttpServer()
