@@ -13,6 +13,8 @@ private:
     std::vector<std::string>& sqls,
     const std::string& filename);
 
+  bool IsInArray(const std::string& s, const std::vector<std::string>& array);
+
 public:
   std::string sql_host;
   std::string sql_user;

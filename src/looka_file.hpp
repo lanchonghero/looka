@@ -20,6 +20,12 @@ public:
     std::string& multi_attr_file,
     std::string& string_attr_file,
     std::vector<DocAttr*>*& summary);
+  
+  bool ReadSummaryFromFile(
+    std::string& summary_file,
+    std::vector<DocAttr*>*& summary,
+    AttrNames*& attr_names,
+    DocAttrType type);
 };
 
 class LookaIndexWriter
@@ -35,6 +41,7 @@ public:
   bool WriteSummaryToFile(
     std::string& summary_file,
     std::vector<DocAttr*>*& docs,
+    AttrNames* attr_names,
     DocAttrType type);
 };
 

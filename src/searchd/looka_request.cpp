@@ -56,7 +56,21 @@ bool LookaRequest::Parse(const HttpRequest& request)
       dataformat = toLower(val);
     } else if (key == "offset") {
       offset = atoi(val.c_str());
+    } else if (key == "filter") {
+      ParseFilter(val);
+    } else if (key == "filter_range") {
+      ParseFilterRange(val);
     }
   }
   return true;
+}
+
+bool LookaRequest::ParseFilter(const std::string& filter_string)
+{
+  return false;
+}
+
+bool LookaRequest::ParseFilterRange(const std::string& filter_range_string)
+{
+  return false;
 }

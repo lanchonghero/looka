@@ -23,6 +23,9 @@ public:
   bool Init();
   virtual bool Process(const HttpRequest& request, std::string& reply, std::string& extension);
 
+private:
+  bool IsInArray(const std::string& s, const std::vector<std::string>& array);
+
 public:
   LookaConfigSource*  m_source_cfg;
   LookaConfigIndex*   m_index_cfg;

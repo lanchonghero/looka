@@ -47,6 +47,11 @@ int LookaIndexer::DoIndex()
   if (!writer)
     _ERROR_RETURN(-1, "create indexwriter failed");
 
+  AttrNames* uint_names   = CreateAttrNames(m_source_cfg->sql_attr_uint);
+  AttrNames* float_names  = CreateAttrNames(m_source_cfg->sql_attr_float);
+  AttrNames* multi_names  = CreateAttrNames(m_source_cfg->sql_attr_multi);
+  AttrNames* string_names = CreateAttrNames(m_source_cfg->sql_attr_string);
+
   _INFO("indexing:%s start...", m_index_cfg->mSectionName.c_str());
   {
     timeval start;
@@ -76,10 +81,10 @@ int LookaIndexer::DoIndex()
     // write index
     writer->WriteIndexToFile(m_index_cfg->index_file, inverter);
     // write summary
-    writer->WriteSummaryToFile(m_index_cfg->summary_file_uint, summary, ATTR_TYPE_UINT);
-    writer->WriteSummaryToFile(m_index_cfg->summary_file_float, summary, ATTR_TYPE_FLOAT);
-    writer->WriteSummaryToFile(m_index_cfg->summary_file_multi, summary, ATTR_TYPE_MULTI);
-    writer->WriteSummaryToFile(m_index_cfg->summary_file_string, summary, ATTR_TYPE_STRING);
+    writer->WriteSummaryToFile(m_index_cfg->summary_file_uint, summary, uint_names, ATTR_TYPE_UINT);
+    writer->WriteSummaryToFile(m_index_cfg->summary_file_float, summary, float_names, ATTR_TYPE_FLOAT);
+    writer->WriteSummaryToFile(m_index_cfg->summary_file_multi, summary, multi_names, ATTR_TYPE_MULTI);
+    writer->WriteSummaryToFile(m_index_cfg->summary_file_string, summary, string_names, ATTR_TYPE_STRING);
 
     int waste_time = WASTE_TIME_MS(start);
     _INFO("[docnum %d] [cost %dms]", ldocid, waste_time);
@@ -291,4 +296,26 @@ bool LookaIndexer::IsInFields(
   }
   index = std::distance(fields.begin(), it);
   return true;
+}
+
+AttrNames* LookaIndexer::CreateAttrNames(const std::vector<std::string>& attrs)
+{
+  AttrNames* a = NULL;
+
+  int s_alloc_size = sizeof(AttrNames) + attrs.size() * sizeof(uint32_t);
+  for (unsigned int i=0; i<attrs.size(); i++)
+    s_alloc_size += attrs[i].length() + 1;
+  a = (AttrNames*)malloc(s_alloc_size);
+  a->size = attrs.size();
+  
+  int cur_pos = 0;
+  int offset = attrs.size() * sizeof(uint32_t);
+  for (unsigned int i=0; i<attrs.size(); i++) {
+    a->len[i] = attrs[i].length();
+    int abs_pos = offset + cur_pos;
+    memcpy(a->data + abs_pos, &(attrs[i][0]), attrs[i].length());
+    cur_pos += attrs[i].length() + 1;
+  }
+
+  return a;
 }

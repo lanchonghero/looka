@@ -34,6 +34,8 @@ private:
     LookaInverter<Token, DocInvert*>* inverter,
     std::vector<DocAttr*>* summary);
 
+  AttrNames* CreateAttrNames(const std::vector<std::string>& attrs);
+
 private:
   LookaConfigSource* m_source_cfg;
   LookaConfigIndex*  m_index_cfg;

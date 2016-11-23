@@ -107,104 +107,117 @@ bool LookaIndexReader::ReadSummaryFromFile(
   if (!summary)
     return false;
 
-  std::ifstream f_u(uint_attr_file.c_str(), std::ios::binary);
-  if (!f_u) {
-    _ERROR("[cannot open file %s]", uint_attr_file.c_str());
+  std::map<DocAttrType, AttrNames*> attribute_names;
+  attribute_names[ATTR_TYPE_UINT]   = NULL;
+  attribute_names[ATTR_TYPE_FLOAT]  = NULL;
+  attribute_names[ATTR_TYPE_MULTI]  = NULL;
+  attribute_names[ATTR_TYPE_STRING] = NULL;
+
+  return ReadSummaryFromFile(uint_attr_file, summary, attribute_names[ATTR_TYPE_UINT], ATTR_TYPE_UINT) &
+    ReadSummaryFromFile(float_attr_file, summary, attribute_names[ATTR_TYPE_FLOAT], ATTR_TYPE_FLOAT) &
+    ReadSummaryFromFile(multi_attr_file, summary, attribute_names[ATTR_TYPE_MULTI], ATTR_TYPE_MULTI) &
+    ReadSummaryFromFile(string_attr_file, summary, attribute_names[ATTR_TYPE_STRING], ATTR_TYPE_STRING);
+}
+
+bool LookaIndexReader::ReadSummaryFromFile(
+  std::string& summary_file,
+  std::vector<DocAttr*>*& summary,
+  AttrNames*& attr_names,
+  DocAttrType type)
+{
+  if (!summary)
     return false;
-  }
-  std::ifstream f_f(float_attr_file.c_str(), std::ios::binary);
-  if (!f_f) {
-    _ERROR("[cannot open file %s]", float_attr_file.c_str());
-    return false;
-  }
-  std::ifstream f_m(multi_attr_file.c_str(), std::ios::binary);
-  if (!f_m) {
-    _ERROR("[cannot open file %s]", multi_attr_file.c_str());
-    return false;
-  }
-  std::ifstream f_s(string_attr_file.c_str(), std::ios::binary);
-  if (!f_s) {
-    _ERROR("[cannot open file %s]", string_attr_file.c_str());
+
+  std::ifstream f(summary_file.c_str(), std::ios::binary);
+  if (!f) {
+    _ERROR("[cannot open file %s]", summary_file.c_str());
     return false;
   }
 
-
+  // read doc count
   uint32_t count;
-  uint32_t temp;
+  f.read((char*)&count, sizeof(count));
 
-  f_u.read((char*)&temp, sizeof(temp));
-  count = temp;
-
-  f_f.read((char*)&temp, sizeof(temp));
-  if (count != temp) {
+  if (summary->empty()) {
+    summary->resize(count);
+  } else if (summary->size() != count) {
     _ERROR("[read count error]");
+    f.close();
     return false;
   }
 
-  f_m.read((char*)&temp, sizeof(temp));
-  if (count != temp) {
-    _ERROR("[read count error]");
-    return false;
-  }
-  
-  f_s.read((char*)&temp, sizeof(temp));
-  if (count != temp) {
-    _ERROR("[read count error]");
-    return false;
-  }
+  // read attribute names
+  uint8_t attr_name_size;
+  f.read((char*)&attr_name_size, sizeof(attr_name_size));
 
+  int len_array_size  = sizeof(uint32_t) * attr_name_size;
+  uint32_t* len_array = (uint32_t*)malloc(len_array_size);
+  f.read((char*)len_array, len_array_size);
+  int strings_size = 0;
+  for (uint8_t i=0; i<attr_name_size; i++)
+    strings_size += len_array[i] + 1;
+
+  if (attr_names)
+    free(attr_names);
+  attr_names = (AttrNames*)malloc(sizeof(AttrNames) + len_array_size + strings_size);
+  memcpy((char*)(attr_names->len), (char*)len_array, len_array_size);
+  free(len_array);
+
+  f.read((char*)attr_names->data + len_array_size, strings_size);
+  attr_names->size = attr_name_size;
+      
+  // read attribute
   uint32_t i = 0;
-  summary->resize(count);
   while (i < count) {
-    DocAttr* attr = new DocAttr();
+    if ((*summary)[i] == NULL)
+      (*summary)[i] = new DocAttr();
+    DocAttr* attr = (*summary)[i];
+
     uint8_t size;
+    f.read((char*)&size, sizeof(size));
 
-    f_u.read((char*)&size, sizeof(size));
-    AttrUint* p_u = (AttrUint*)malloc(sizeof(AttrUint) + sizeof(uint32_t) * size);
-    f_u.read((char*)(p_u->data), sizeof(uint32_t) * size);
-    p_u->size = size;
-    attr->u = p_u;
-    
-    f_f.read((char*)&size, sizeof(size));
-    AttrFloat* p_f = (AttrFloat*)malloc(sizeof(AttrFloat) + sizeof(float) * size);
-    f_f.read((char*)(p_f->data), sizeof(float) * size);
-    p_f->size = size;
-    attr->f = p_f;
-    
-    f_m.read((char*)&size, sizeof(size));
-    AttrMulti* p_m = (AttrMulti*)malloc(sizeof(AttrMulti) + sizeof(uint32_t) * size);
-    f_m.read((char*)(p_m->data), sizeof(uint32_t) * size);
-    p_m->size = size;
-    attr->m = p_m;
+    if (type == ATTR_TYPE_UINT) {
+      AttrUint* p_u = (AttrUint*)malloc(sizeof(AttrUint) + sizeof(uint32_t) * size);
+      f.read((char*)(p_u->data), sizeof(uint32_t) * size);
+      p_u->size = size;
+      if (attr->u)
+        free(attr->u);
+      attr->u = p_u;
+    } else if (type == ATTR_TYPE_FLOAT) {
+      AttrFloat* p_f = (AttrFloat*)malloc(sizeof(AttrFloat) + sizeof(float) * size);
+      f.read((char*)(p_f->data), sizeof(float) * size);
+      p_f->size = size;
+      if (attr->f)
+        free(attr->f);
+      attr->f = p_f;
+    } else if (type == ATTR_TYPE_MULTI) {
+      AttrMulti* p_m = (AttrMulti*)malloc(sizeof(AttrMulti) + sizeof(uint32_t) * size);
+      f.read((char*)(p_m->data), sizeof(uint32_t) * size);
+      p_m->size = size;
+      if (attr->m)
+        free(attr->m);
+      attr->m = p_m;
+    } else if (type == ATTR_TYPE_STRING) {
+      int len_array_size  = sizeof(uint32_t) * size;
+      uint32_t* len_array = (uint32_t*)malloc(len_array_size);
+      f.read((char*)len_array, len_array_size);
+      int strings_size = 0;
+      for (uint32_t j=0; j<size; j++)
+        strings_size += len_array[j] + 1;
 
-    f_s.read((char*)&size, sizeof(size));
-    int len_array_size  = sizeof(uint32_t) * size;
-    uint32_t* len_array = (uint32_t*)malloc(len_array_size);
-    f_s.read((char*)len_array, len_array_size);
-    int strings_size = 0;
-    for (uint32_t j=0; j<size; j++)
-      strings_size += len_array[j] + 1;
+      AttrString* p_s = (AttrString*)malloc(sizeof(AttrString) + len_array_size + strings_size);
+      memcpy((char*)(p_s->len), (char*)len_array, len_array_size);
+      f.read((char*)p_s->data + len_array_size, strings_size);
+      p_s->size = size;
+      if (attr->s)
+        free(attr->s);
+      attr->s = p_s;
+      free(len_array);
+    }
 
-    AttrString* p_s = (AttrString*)malloc(sizeof(AttrString) + len_array_size + strings_size);
-    memcpy((char*)(p_s->len), (char*)len_array, len_array_size);
-    f_s.read((char*)p_s->data + len_array_size, strings_size);
-    p_s->size = size;
-    attr->s = p_s;
-
-    /*
-    for (uint32_t j=0; j<size; j++)
-      _INFO("string[%u]:%s", j, p_s->GetString(j).c_str());
-      */
-    free(len_array);
-
-    (*summary)[i] = attr;
     i++;
   }
-
-  f_u.close();
-  f_f.close();
-  f_m.close();
-  f_s.close();
+  f.close();
   return true;
 }
 
@@ -259,6 +272,7 @@ bool LookaIndexWriter::WriteIndexToFile(
 bool LookaIndexWriter::WriteSummaryToFile(
   std::string& summary_file,
   std::vector<DocAttr*>*& docs,
+  AttrNames* attr_names,
   DocAttrType type)
 {
   std::ofstream file(summary_file.c_str(), std::ios::binary);
@@ -267,9 +281,19 @@ bool LookaIndexWriter::WriteSummaryToFile(
     return false;
   }
 
+  // write doc count
   uint32_t count = docs->size();
   file.write((char*)&count, sizeof(count));
 
+  // write attribute names
+  file.write((char*)&(attr_names->size), sizeof(attr_names->size));
+  file.write((char*)(attr_names->len), attr_names->size * sizeof(uint32_t));
+  int data_size = 0;
+  for (unsigned int i=0; i<attr_names->size; i++)
+    data_size += attr_names->len[i] + 1;
+  file.write((char*)(attr_names->data + attr_names->size*sizeof(uint32_t)), data_size);
+
+  // write docs
   if (type == ATTR_TYPE_UINT) {
     for (unsigned int i=0; i<docs->size(); i++) {
       AttrUint*& u = (*docs)[i]->u;
@@ -300,7 +324,7 @@ bool LookaIndexWriter::WriteSummaryToFile(
       /*
       for (unsigned int j=0; j<s->size; j++)
         _INFO("string[%u]:%s", j, s->GetString(j).c_str());
-        */
+      */
     }
   }
 

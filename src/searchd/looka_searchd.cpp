@@ -81,8 +81,11 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   if (!req.Parse(request))
     return false;
   extension = req.dataformat;
+  LookaRequest::FilterIter_t fit;
+  for (fit = req.filter.begin(); fit != req.filter.end(); ++fit) {
+  }
   wastetime_parse = WASTE_TIME_US(parse_start);
-  
+
   // segment query
   gettimeofday(&segment_start, NULL);
   std::vector<SegmentToken> segtokens;
@@ -90,7 +93,7 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   m_segmenter->Segment(req.query, segtokens);
   pthread_mutex_unlock(&m_seg_lock);
   wastetime_segment = WASTE_TIME_US(segment_start);
-  
+
   // do search
   gettimeofday(&search_start, NULL);
   int total = 0;
@@ -101,8 +104,9 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   for (size_t i=0; strtokens.size()<segtokens.size(); strtokens.push_back(segtokens[i++].str));
   inter->SetTokens(strtokens, m_inverter);
   while ((id = inter->Seek(id)) != kIllegalLocalDocID) {
-    if (total >= req.offset && total < req.offset + req.limit)
+    if (total >= req.offset && total < req.offset + req.limit) {
       docs.push_back((*m_summary)[id]);
+    }
     total++;
     id++;
   }
@@ -129,4 +133,11 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
     wastetime_parse + wastetime_segment + wastetime_search + wastetime_pack);
 
   return true;
+}
+
+bool LookaSearchd::IsInArray(const std::string& s, const std::vector<std::string>& array)
+{
+  const std::vector<std::string>::const_iterator it =
+    std::find(array.begin(), array.end(), s);
+  return (it != array.end());
 }

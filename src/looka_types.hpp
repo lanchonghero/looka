@@ -61,6 +61,8 @@ struct AttrString {
   }
 };
 
+typedef struct AttrString  AttrNames;
+
 struct DocAttr {
   AttrUint   *u;
   AttrFloat  *f;
