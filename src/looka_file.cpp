@@ -102,21 +102,24 @@ bool LookaIndexReader::ReadSummaryFromFile(
   std::string& float_attr_file,
   std::string& multi_attr_file,
   std::string& string_attr_file,
+  std::map<DocAttrType, AttrNames*>*& attribute_names,
   std::vector<DocAttr*>*& summary)
 {
   if (!summary)
     return false;
 
-  std::map<DocAttrType, AttrNames*> attribute_names;
-  attribute_names[ATTR_TYPE_UINT]   = NULL;
-  attribute_names[ATTR_TYPE_FLOAT]  = NULL;
-  attribute_names[ATTR_TYPE_MULTI]  = NULL;
-  attribute_names[ATTR_TYPE_STRING] = NULL;
+  if (!attribute_names)
+    return false;
 
-  return ReadSummaryFromFile(uint_attr_file, summary, attribute_names[ATTR_TYPE_UINT], ATTR_TYPE_UINT) &
-    ReadSummaryFromFile(float_attr_file, summary, attribute_names[ATTR_TYPE_FLOAT], ATTR_TYPE_FLOAT) &
-    ReadSummaryFromFile(multi_attr_file, summary, attribute_names[ATTR_TYPE_MULTI], ATTR_TYPE_MULTI) &
-    ReadSummaryFromFile(string_attr_file, summary, attribute_names[ATTR_TYPE_STRING], ATTR_TYPE_STRING);
+  return
+    ReadSummaryFromFile(uint_attr_file, summary,
+      (*attribute_names)[ATTR_TYPE_UINT], ATTR_TYPE_UINT) &
+    ReadSummaryFromFile(float_attr_file, summary,
+      (*attribute_names)[ATTR_TYPE_FLOAT], ATTR_TYPE_FLOAT) &
+    ReadSummaryFromFile(multi_attr_file, summary,
+      (*attribute_names)[ATTR_TYPE_MULTI], ATTR_TYPE_MULTI) &
+    ReadSummaryFromFile(string_attr_file, summary,
+      (*attribute_names)[ATTR_TYPE_STRING], ATTR_TYPE_STRING);
 }
 
 bool LookaIndexReader::ReadSummaryFromFile(

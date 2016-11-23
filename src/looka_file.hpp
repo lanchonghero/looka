@@ -19,6 +19,7 @@ public:
     std::string& float_attr_file,
     std::string& multi_attr_file,
     std::string& string_attr_file,
+    std::map<DocAttrType, AttrNames*>*& attribute_names,
     std::vector<DocAttr*>*& summary);
   
   bool ReadSummaryFromFile(

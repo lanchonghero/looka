@@ -33,6 +33,12 @@ LookaSearchd::LookaSearchd(
   m_inverter = new LookaInverter<Token, DocInvert*>();
   m_summary  = new std::vector<DocAttr*>();
   m_result_packer_wrapper = new LookaResultPackerWrapper();
+  m_attr_names = new std::map<DocAttrType, AttrNames*>();
+
+  (*m_attr_names)[ATTR_TYPE_UINT]   = NULL;
+  (*m_attr_names)[ATTR_TYPE_FLOAT]  = NULL;
+  (*m_attr_names)[ATTR_TYPE_MULTI]  = NULL;
+  (*m_attr_names)[ATTR_TYPE_STRING] = NULL;
 
   pthread_mutex_init(&m_seg_lock, NULL);
 }
@@ -47,6 +53,8 @@ LookaSearchd::~LookaSearchd()
     delete m_summary;
   if (m_result_packer_wrapper)
     delete m_result_packer_wrapper;
+  if (m_attr_names)
+    delete m_attr_names;
   pthread_mutex_destroy(&m_seg_lock);
 }
 
@@ -61,6 +69,7 @@ bool LookaSearchd::Init()
     m_index_cfg->summary_file_float,
     m_index_cfg->summary_file_multi,
     m_index_cfg->summary_file_string,
+    m_attr_names,
     m_summary);
   delete reader;
 }

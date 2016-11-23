@@ -104,6 +104,12 @@ int main(int argc, char** argv)
   LookaIndexReader* reader = new LookaIndexReader();
   LookaInverter<Token, DocInvert*>* inverter =
     new LookaInverter<Token, DocInvert*>();
+  std::map<DocAttrType, AttrNames*>* attr_names =
+    new std::map<DocAttrType, AttrNames*>();
+  (*attr_names)[ATTR_TYPE_UINT]   = NULL;
+  (*attr_names)[ATTR_TYPE_FLOAT]  = NULL;
+  (*attr_names)[ATTR_TYPE_MULTI]  = NULL;
+  (*attr_names)[ATTR_TYPE_STRING] = NULL;
 
   std::string index_file = "./data/service/looka_idx_1.lci";
   reader->ReadIndexFromFile(index_file, inverter);
@@ -117,6 +123,7 @@ int main(int argc, char** argv)
     float_attr_file,
     multi_attr_file,
     string_attr_file,
+    attr_names,
     summary);
 
   // test query

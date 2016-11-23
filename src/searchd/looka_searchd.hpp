@@ -35,6 +35,7 @@ public:
   LookaInverter<Token, DocInvert*>* m_inverter;
   std::vector<DocAttr*>* m_summary;
   LookaResultPackerWrapper* m_result_packer_wrapper;
+  std::map<DocAttrType, AttrNames*>* m_attr_names;
 
   pthread_mutex_t m_seg_lock;
 };

@@ -51,7 +51,7 @@ struct AttrString {
 
   std::string GetString(int idx) {
     std::string s("");
-    if (idx >= 0 && size > 0) {
+    if (idx >= 0 && idx < static_cast<int>(size)) {
       uint32_t pos = size * sizeof(uint32_t);
       for (int i=0; i<idx; i++)
         pos += len[i] + 1;
