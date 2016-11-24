@@ -122,17 +122,21 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
       if (!GetAttrNameIndex(it->first, type, idx))
         continue;
 
+      std::string s;
       if (type == ATTR_TYPE_UINT) {
+        s = StringPrintf("%u", attr->u->data[idx]);
       } else if (type == ATTR_TYPE_FLOAT) {
+        s = StringPrintf("%f", attr->f->data[idx]);
       } else if (type == ATTR_TYPE_MULTI) {
+        s = StringPrintf("%u", attr->m->data[idx]);
       } else if (type == ATTR_TYPE_STRING) {
-        if (std::find(filter_values.begin(), filter_values.end(),
-            attr->s->GetString(idx)) == filter_values.end()) {
-          hit_filter = true;
-        }
+        s = attr->s->GetString(idx);
       }
-      if (hit_filter)
+
+      if (std::find(filter_values.begin(), filter_values.end(), s) == filter_values.end()) {
+        hit_filter = true;
         break;
+      }
     }
     if (hit_filter)
       continue;
