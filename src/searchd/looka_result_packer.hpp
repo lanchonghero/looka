@@ -21,6 +21,7 @@ public:
     const std::string& query,
     const std::vector<std::string> strtokens,
     const std::vector<DocAttr*>& docs,
+    const std::map<DocAttrType, AttrNames*>* attrnames,
     const LookaIntersect* intersect,
     const LookaInverter<Token, DocInvert*>* inverter,
     const std::vector<std::pair<std::string, std::string> >& extra,
@@ -30,7 +31,13 @@ public:
     const LookaConfigSource* source,
     const std::vector<std::pair<std::string, std::string> >& summary,
     const std::vector<DocAttr*>& docs,
+    const std::map<DocAttrType, AttrNames*>* attrnames,
     int&  wastetime_us) = 0;
+
+protected:
+  bool GetAttrNameIndex(
+    const std::map<DocAttrType, AttrNames*>* attrnames,
+    const std::string& s, DocAttrType& type, int& index);
 };
 
 class LookaResultBasicPacker: public LookaResultPacker
@@ -43,6 +50,7 @@ public:
     const LookaConfigSource* source,
     const std::vector<std::pair<std::string, std::string> >& summary,
     const std::vector<DocAttr*>& docs,
+    const std::map<DocAttrType, AttrNames*>* attrnames,
     int&  wastetime_us)
   {
     return "";
@@ -59,6 +67,7 @@ public:
     const LookaConfigSource* source,
     const std::vector<std::pair<std::string, std::string> >& summary,
     const std::vector<DocAttr*>& docs,
+    const std::map<DocAttrType, AttrNames*>* attrnames,
     int&  wastetime_us);
 };
 
@@ -72,6 +81,7 @@ public:
     const LookaConfigSource* source,
     const std::vector<std::pair<std::string, std::string> >& summary,
     const std::vector<DocAttr*>& docs,
+    const std::map<DocAttrType, AttrNames*>* attrnames,
     int&  wastetime_us);
 };
 

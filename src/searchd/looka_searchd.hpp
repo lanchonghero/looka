@@ -10,6 +10,7 @@
 #include "../looka_inverter.hpp"
 #include "../httpserver/server_handler.hpp"
 #include "looka_result_packer.hpp"
+#include "looka_request.hpp"
 
 class LookaSearchd: public ServerHandler
 {
@@ -24,6 +25,8 @@ public:
   virtual bool Process(const HttpRequest& request, std::string& reply, std::string& extension);
 
 private:
+  bool DropByFilter(const DocAttr* attr, const LookaRequest::Filter_t& filter);
+  bool DropByFilterRange(const DocAttr* attr, const LookaRequest::FilterRange_t& filter_range);
   bool GetAttrNameIndex(const std::string& s, DocAttrType& type, int& index);
 
 public:

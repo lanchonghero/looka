@@ -10,8 +10,7 @@ public:
 
 private:
   void AppendSqlFromFile(
-    std::vector<std::string>& sqls,
-    const std::string& filename);
+    std::vector<std::string>& sqls, const std::string& filename);
 
   bool IsInArray(const std::string& s, const std::vector<std::string>& array);
 

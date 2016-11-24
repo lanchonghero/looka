@@ -19,13 +19,12 @@ public:
 
 private:
   MysqlWrapper* CreateMysqlWrapper();
-  int CheckFields(
-    const std::vector<std::string>& attrs,
+
+  int CheckFields(const std::vector<std::string>& attrs,
     const std::vector<std::string>& fields);
-  bool IsInFields(
-    const std::string& f,
-    const std::vector<std::string>& fields,
-    int &index);
+
+  bool IsInFields(const std::string& f,
+    const std::vector<std::string>& fields, int &index);
 
   bool ProcessDoc(
     LocalDocID ldocid,

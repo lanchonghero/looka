@@ -1,0 +1,11 @@
+# tags for code view
+tags
+
+# generate data and build directory
+data/service/*
+build/
+debug/
+release/
+
+# vim swp file
+*.swp

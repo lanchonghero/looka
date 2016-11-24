@@ -5,7 +5,8 @@
 #include "../looka_str2id.hpp"
 #include "../looka_string_utils.hpp"
 
-LookaIndexer::LookaIndexer(LookaConfigSource* source_cfg, LookaConfigIndex* index_cfg):
+LookaIndexer::LookaIndexer(
+  LookaConfigSource* source_cfg, LookaConfigIndex* index_cfg):
   m_source_cfg(source_cfg), m_index_cfg(index_cfg)
 {
 }
@@ -81,10 +82,14 @@ int LookaIndexer::DoIndex()
     // write index
     writer->WriteIndexToFile(m_index_cfg->index_file, inverter);
     // write summary
-    writer->WriteSummaryToFile(m_index_cfg->summary_file_uint, summary, uint_names, ATTR_TYPE_UINT);
-    writer->WriteSummaryToFile(m_index_cfg->summary_file_float, summary, float_names, ATTR_TYPE_FLOAT);
-    writer->WriteSummaryToFile(m_index_cfg->summary_file_multi, summary, multi_names, ATTR_TYPE_MULTI);
-    writer->WriteSummaryToFile(m_index_cfg->summary_file_string, summary, string_names, ATTR_TYPE_STRING);
+    writer->WriteSummaryToFile(
+      m_index_cfg->summary_file_uint, summary, uint_names, ATTR_TYPE_UINT);
+    writer->WriteSummaryToFile(
+      m_index_cfg->summary_file_float, summary, float_names, ATTR_TYPE_FLOAT);
+    writer->WriteSummaryToFile(
+      m_index_cfg->summary_file_multi, summary, multi_names, ATTR_TYPE_MULTI);
+    writer->WriteSummaryToFile(
+      m_index_cfg->summary_file_string, summary, string_names, ATTR_TYPE_STRING);
 
     int waste_time = WASTE_TIME_MS(start);
     _INFO("[docnum %d] [cost %dms]", ldocid, waste_time);
@@ -164,7 +169,8 @@ bool LookaIndexer::ProcessDoc(
     for (unsigned int j=0; j<segtokens.size(); j++) {
       Token t(segtokens[j].str);
       if (tokenHits.find(t) == tokenHits.end())
-        tokenHits.insert(std::make_pair(t, new LookaSimpleInverter<FieldID, uint8_t>()));
+        tokenHits.insert(
+          std::make_pair(t, new LookaSimpleInverter<FieldID, uint8_t>()));
       LookaSimpleInverter<FieldID, uint8_t>* &fieldHits = tokenHits[t];
       fieldHits->Add(field_id, segtokens[j].pos);
     }

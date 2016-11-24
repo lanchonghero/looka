@@ -5,7 +5,6 @@
 #include <libxml/parser.h>
 #include "../looka_file.hpp"
 #include "../looka_intersect.hpp"
-#include "looka_request.hpp"
 #include "looka_searchd.hpp"
 
 LookaSearchd::LookaSearchd(
@@ -113,32 +112,11 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
     DocAttr*& attr = (*m_summary)[id++];
 
     // match filter
-    bool hit_filter = false;
-    LookaRequest::FilterIter_t it;
-    for (it=req.filter.begin(); it!=req.filter.end(); ++it) {
-      std::vector<std::string>& filter_values = it->second;
-      DocAttrType type;
-      int idx;
-      if (!GetAttrNameIndex(it->first, type, idx))
-        continue;
+    if (DropByFilter(attr, req.filter))
+      continue;
 
-      std::string s;
-      if (type == ATTR_TYPE_UINT) {
-        s = StringPrintf("%u", attr->u->data[idx]);
-      } else if (type == ATTR_TYPE_FLOAT) {
-        s = StringPrintf("%f", attr->f->data[idx]);
-      } else if (type == ATTR_TYPE_MULTI) {
-        s = StringPrintf("%u", attr->m->data[idx]);
-      } else if (type == ATTR_TYPE_STRING) {
-        s = attr->s->GetString(idx);
-      }
-
-      if (std::find(filter_values.begin(), filter_values.end(), s) == filter_values.end()) {
-        hit_filter = true;
-        break;
-      }
-    }
-    if (hit_filter)
+    // match filter range
+    if (DropByFilterRange(attr, req.filter_range))
       continue;
 
     // match doc
@@ -157,12 +135,13 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   extra.push_back(std::make_pair("search_cost",  intToString(wastetime_search) + "us"));
 
   LookaResultPacker* packer = m_result_packer_wrapper->GetResultPacker(req.dataformat);
-  reply = packer->PackResult(m_source_cfg, req.query, strtokens, docs, inter, m_inverter, extra, wastetime_pack);
+  reply = packer->PackResult(m_source_cfg, req.query, strtokens, docs, m_attr_names, inter, m_inverter, extra, wastetime_pack);
 
   delete inter;
 
-  _INFO("[query %s] [total_found %d] [return_num %d] [cost(%d %d %d %d) %dus]",
-    req.query.c_str(), total, static_cast<int>(docs.size()),
+  _INFO("[query %s] [filter %s] [filter_range %s] [total_found %d] [return_num %d] [cost(%d %d %d %d) %dus]",
+    req.query.c_str(), req.filter_string.c_str(), req.filter_range_string.c_str(),
+    total, static_cast<int>(docs.size()),
     wastetime_parse,
     wastetime_segment,
     wastetime_search,
@@ -193,4 +172,40 @@ bool LookaSearchd::GetAttrNameIndex(const std::string& s, DocAttrType& type, int
     }
   }
   return found;
+}
+
+bool LookaSearchd::DropByFilter(const DocAttr* attr, const LookaRequest::Filter_t& filter)
+{
+  bool hit = false;
+  int idx;
+  DocAttrType type;
+  LookaRequest::FilterConstIter_t it;
+  for (it=filter.begin(); it!=filter.end(); ++it) {
+    const std::string& filter_key = it->first;
+    const std::vector<std::string>& filter_values = it->second;
+    if (!GetAttrNameIndex(filter_key, type, idx))
+      continue;
+
+    std::string s;
+    if (type == ATTR_TYPE_UINT) {
+      s = StringPrintf("%u", attr->u->data[idx]);
+    } else if (type == ATTR_TYPE_FLOAT) {
+      s = StringPrintf("%f", attr->f->data[idx]);
+    } else if (type == ATTR_TYPE_MULTI) {
+      s = StringPrintf("%u", attr->m->data[idx]);
+    } else if (type == ATTR_TYPE_STRING) {
+      s = attr->s->GetString(idx);
+    }
+
+    if (std::find(filter_values.begin(), filter_values.end(), s) == filter_values.end()) {
+      hit = true;
+      break;
+    }
+  }
+  return hit;
+}
+
+bool LookaSearchd::DropByFilterRange(const DocAttr* attr, const LookaRequest::FilterRange_t& filter_range)
+{
+  return false;
 }

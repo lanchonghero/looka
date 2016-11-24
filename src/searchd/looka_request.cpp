@@ -65,8 +65,9 @@ bool LookaRequest::Parse(const HttpRequest& request)
   return true;
 }
 
-bool LookaRequest::ParseFilter(const std::string& filter_string)
+bool LookaRequest::ParseFilter(const std::string& s)
 {
+  filter_string = s;
   std::vector<std::string> filter_pieces;
   splitString(filter_string, ';', filter_pieces);
   if (filter_pieces.empty())
@@ -93,7 +94,8 @@ bool LookaRequest::ParseFilter(const std::string& filter_string)
   return true;
 }
 
-bool LookaRequest::ParseFilterRange(const std::string& filter_range_string)
+bool LookaRequest::ParseFilterRange(const std::string& s)
 {
+  filter_range_string = s;
   return false;
 }
