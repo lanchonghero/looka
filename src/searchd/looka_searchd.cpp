@@ -90,9 +90,6 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   if (!req.Parse(request))
     return false;
   extension = req.dataformat;
-  LookaRequest::FilterIter_t fit;
-  for (fit = req.filter.begin(); fit != req.filter.end(); ++fit) {
-  }
   wastetime_parse = WASTE_TIME_US(parse_start);
 
   // segment query
@@ -113,11 +110,38 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   for (size_t i=0; strtokens.size()<segtokens.size(); strtokens.push_back(segtokens[i++].str));
   inter->SetTokens(strtokens, m_inverter);
   while ((id = inter->Seek(id)) != kIllegalLocalDocID) {
+    DocAttr*& attr = (*m_summary)[id++];
+
+    // match filter
+    bool hit_filter = false;
+    LookaRequest::FilterIter_t it;
+    for (it=req.filter.begin(); it!=req.filter.end(); ++it) {
+      std::vector<std::string>& filter_values = it->second;
+      DocAttrType type;
+      int idx;
+      if (!GetAttrNameIndex(it->first, type, idx))
+        continue;
+
+      if (type == ATTR_TYPE_UINT) {
+      } else if (type == ATTR_TYPE_FLOAT) {
+      } else if (type == ATTR_TYPE_MULTI) {
+      } else if (type == ATTR_TYPE_STRING) {
+        if (std::find(filter_values.begin(), filter_values.end(),
+            attr->s->GetString(idx)) == filter_values.end()) {
+          hit_filter = true;
+        }
+      }
+      if (hit_filter)
+        break;
+    }
+    if (hit_filter)
+      continue;
+
+    // match doc
     if (total >= req.offset && total < req.offset + req.limit) {
-      docs.push_back((*m_summary)[id]);
+      docs.push_back(attr);
     }
     total++;
-    id++;
   }
   wastetime_search = WASTE_TIME_US(search_start);
 
@@ -144,9 +168,25 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   return true;
 }
 
-bool LookaSearchd::IsInArray(const std::string& s, const std::vector<std::string>& array)
+bool LookaSearchd::GetAttrNameIndex(const std::string& s, DocAttrType& type, int& index)
 {
-  const std::vector<std::string>::const_iterator it =
-    std::find(array.begin(), array.end(), s);
-  return (it != array.end());
+  if (!m_attr_names)
+    return false;
+  if (s.empty())
+    return false;
+
+  bool found = false;
+  std::map<DocAttrType, AttrNames*>::iterator it = m_attr_names->begin();
+  for (it; it != m_attr_names->end(); ++it) {
+    AttrNames*& attr = it->second;
+    for (uint8_t i=0; i<attr->size; i++) {
+      if (attr->GetString(i) == s) {
+        type = it->first;
+        index = static_cast<int>(i);
+        found = true;
+        break;
+      }
+    }
+  }
+  return found;
 }

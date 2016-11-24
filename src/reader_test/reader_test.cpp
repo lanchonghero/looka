@@ -111,13 +111,13 @@ int main(int argc, char** argv)
   (*attr_names)[ATTR_TYPE_MULTI]  = NULL;
   (*attr_names)[ATTR_TYPE_STRING] = NULL;
 
-  std::string index_file = "./data/service/looka_idx_1.lci";
+  std::string index_file = "./data/service/book_index.lci";
   reader->ReadIndexFromFile(index_file, inverter);
 
-  std::string uint_attr_file   = "./data/service/looka_idx_1.lcu";
-  std::string float_attr_file  = "./data/service/looka_idx_1.lcf";
-  std::string multi_attr_file  = "./data/service/looka_idx_1.lcm";
-  std::string string_attr_file = "./data/service/looka_idx_1.lcs";
+  std::string uint_attr_file   = "./data/service/book_index.lcu";
+  std::string float_attr_file  = "./data/service/book_index.lcf";
+  std::string multi_attr_file  = "./data/service/book_index.lcm";
+  std::string string_attr_file = "./data/service/book_index.lcs";
   reader->ReadSummaryFromFile(
     uint_attr_file,
     float_attr_file,
@@ -127,7 +127,14 @@ int main(int argc, char** argv)
     summary);
 
   // test query
-  std::string query = "亚冠";
+  std::string query = "无敌";
+
+  // test filter
+  std::string category = "玄幻";
+  uint32_t index = 0;
+  for (; index<(*attr_names)[ATTR_TYPE_STRING]->size; index++)
+    if ((*attr_names)[ATTR_TYPE_STRING]->GetString(index) == "category")
+      break;
   
   // query segment
   std::string dict_path = "/usr/local/mmseg/etc/";
@@ -149,14 +156,19 @@ int main(int argc, char** argv)
   gettimeofday(&now, NULL);
   while ((id = inter->Seek(id)) != kIllegalLocalDocID) {
     if (id < summary->size()) {
-      _INFO("=======================================");
-      _INFO("find doc:%u", id);
       DocAttr* attr = (*summary)[id];
       AttrUint*  u = attr->u;
       AttrFloat* f = attr->f;
       AttrMulti* m = attr->m;
       AttrString* s = attr->s;
 
+      if (index < s->size && s->GetString(index) != category) {
+        id++;
+        continue;
+      }
+      
+      _INFO("=======================================");
+      _INFO("find doc:%u", id);
       // FilterDoc(attr, query);
       for (uint32_t i=0; i<u->size; i++)
         _INFO("uint_attrs:%u", u->data[i]);
@@ -175,5 +187,6 @@ int main(int argc, char** argv)
   delete seg;
   delete reader;
   delete inverter;
+  delete attr_names;
   return 0;
 }

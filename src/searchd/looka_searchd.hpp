@@ -24,7 +24,7 @@ public:
   virtual bool Process(const HttpRequest& request, std::string& reply, std::string& extension);
 
 private:
-  bool IsInArray(const std::string& s, const std::vector<std::string>& array);
+  bool GetAttrNameIndex(const std::string& s, DocAttrType& type, int& index);
 
 public:
   LookaConfigSource*  m_source_cfg;

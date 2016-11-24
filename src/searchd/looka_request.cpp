@@ -67,7 +67,30 @@ bool LookaRequest::Parse(const HttpRequest& request)
 
 bool LookaRequest::ParseFilter(const std::string& filter_string)
 {
-  return false;
+  std::vector<std::string> filter_pieces;
+  splitString(filter_string, ';', filter_pieces);
+  if (filter_pieces.empty())
+    return false;
+  for (size_t i = 0; i < filter_pieces.size(); i++) {
+    if (filter_pieces[i].empty()) continue;
+    std::vector<std::string> kvs;
+    splitString(filter_pieces[i], ':', kvs);
+    if (kvs.size() != 2) continue;
+
+    std::string k = kvs[0];
+    std::vector<std::string> vs;
+    splitString(kvs[1], ',', vs);
+    if (vs.empty()) continue;
+
+    if (filter.find(k) == filter.end()) {
+      filter[k] = vs;
+    } else {
+      filter[k].insert(filter[k].end(), vs.begin(), vs.end()); 
+    }
+  }
+  if (filter.size() == 0)
+    return false;
+  return true;
 }
 
 bool LookaRequest::ParseFilterRange(const std::string& filter_range_string)
