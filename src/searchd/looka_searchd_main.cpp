@@ -7,7 +7,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <signal.h>
-#include "../httpserver/http_server.hpp"
+#include "../http_frame/http_server.hpp"
 #include "looka_searchd.hpp"
 
 #include "../looka_log.hpp"

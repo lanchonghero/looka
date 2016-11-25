@@ -8,7 +8,7 @@
 #include "../looka_config_searchd.hpp"
 #include "../looka_config_source.hpp"
 #include "../looka_inverter.hpp"
-#include "../httpserver/server_handler.hpp"
+#include "../http_frame/server_handler.hpp"
 #include "looka_result_packer.hpp"
 #include "looka_request.hpp"
 
