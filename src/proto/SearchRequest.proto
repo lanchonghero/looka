@@ -1,0 +1,12 @@
+message SearchRequest
+{
+  required int32 request_id = 1;
+  required string query = 2;
+  optional string index = 3;
+  optional string charset = 4;
+  optional string dataformat = 5;
+  optional string filter_string = 6;
+  optional string filter_range_string = 7;
+  optional int32  limit = 8;
+  optional int32  offset = 9;
+}

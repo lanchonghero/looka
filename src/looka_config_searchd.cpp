@@ -28,6 +28,10 @@ LookaConfigSearchd::LookaConfigSearchd(LookaConfigParser* lc, const std::string&
   if ((pid_file = lc->GetString(mSectionTag, mSectionName, item, "")) == "")
     _ERROR_EXIT(-1, "[LookaConfigSearchd Init Error] [get %s failed]", item.c_str());
 
+  item = "role";
+  if ((role = lc->GetString(mSectionTag, mSectionName, item, "")) == "")
+    _ERROR_EXIT(-1, "[LookaConfigSearchd Init Error] [get %s failed]", item.c_str());
+
   item = "max_matches";
   if ((max_matches = lc->GetInt(mSectionTag, mSectionName, item, 0)) == 0)
     _ERROR_EXIT(-1, "[LookaConfigSearchd Init Error] [get %s failed]", item.c_str());

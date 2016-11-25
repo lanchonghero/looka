@@ -25,7 +25,7 @@ public:
   virtual ~LookaSegmenter();
 
   bool Init(const std::string& dict_path);
-  bool Segment(std::string& str, std::vector<SegmentToken>& tokens);
+  bool Segment(const std::string& str, std::vector<SegmentToken>& tokens);
 
 private:
   void Trim(std::string& s);

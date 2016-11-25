@@ -24,7 +24,7 @@ bool LookaSegmenter::Init(const std::string& dict_path)
   return mInit;
 }
 
-bool LookaSegmenter::Segment(std::string& str, std::vector<SegmentToken>& tokens)
+bool LookaSegmenter::Segment(const std::string& str, std::vector<SegmentToken>& tokens)
 {
   if (!mInit)
     return false;

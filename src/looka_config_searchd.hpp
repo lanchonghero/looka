@@ -17,6 +17,7 @@ public:
   std::string searchd_log;
   std::string query_log;
   std::string pid_file;
+  std::string role;
   
   static std::string  mSectionTag;
 

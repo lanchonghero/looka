@@ -15,6 +15,8 @@ LookaSearchd::LookaSearchd(
   m_source_cfg = source_cfg;
   m_index_cfg = index_cfg;
   m_searchd_cfg = searchd_cfg;
+  // m_role = searchd_cfg->role;
+  m_role = searchd_cfg->role;
 
   if (!m_source_cfg)
     _ERROR_EXIT(-1, "invalid source config");
@@ -39,6 +41,17 @@ LookaSearchd::LookaSearchd(
   (*m_attr_names)[ATTR_TYPE_MULTI]  = NULL;
   (*m_attr_names)[ATTR_TYPE_STRING] = NULL;
 
+  m_client = NULL;
+  m_server = NULL;
+  if (m_role == "parent") {
+    m_client = new tcp_client<LookaSearchd, LookaSearchd>();
+    m_client->register_send_handler(this, &LookaSearchd::TcpClientSendCallback);
+    m_client->register_recv_handler(this, &LookaSearchd::TcpClientRecvHandleData);
+  } else if (m_role == "leaf") {
+    m_server = new tcp_server<LookaSearchd, LookaSearchd>();
+    m_server->register_send_handler(this, &LookaSearchd::TcpServerSendCallback);
+    m_server->register_recv_handler(this, &LookaSearchd::TcpServerRecvHandleData);
+  }
   pthread_mutex_init(&m_seg_lock, NULL);
 }
 
@@ -54,27 +67,48 @@ LookaSearchd::~LookaSearchd()
     delete m_result_packer_wrapper;
   if (m_attr_names)
     delete m_attr_names;
+  if (m_client)
+    delete m_client;
+  if (m_server)
+    delete m_server;
   pthread_mutex_destroy(&m_seg_lock);
 }
 
 bool LookaSearchd::Init()
 {
-  _INFO("[reading index & summary ...]");
-  LookaIndexReader* reader = new LookaIndexReader();
+  if (m_role == "leaf") {
+    _INFO("[reading index & summary ...]");
+    LookaIndexReader* reader = new LookaIndexReader();
 
-  reader->ReadIndexFromFile(m_index_cfg->index_file, m_inverter);
-  reader->ReadSummaryFromFile(
-    m_index_cfg->summary_file_uint,
-    m_index_cfg->summary_file_float,
-    m_index_cfg->summary_file_multi,
-    m_index_cfg->summary_file_string,
-    m_attr_names,
-    m_summary);
-  delete reader;
+    reader->ReadIndexFromFile(m_index_cfg->index_file, m_inverter);
+    reader->ReadSummaryFromFile(
+      m_index_cfg->summary_file_uint,
+      m_index_cfg->summary_file_float,
+      m_index_cfg->summary_file_multi,
+      m_index_cfg->summary_file_string,
+      m_attr_names,
+      m_summary);
+    delete reader;
+
+    m_server->net(6610);
+    m_server->start();
+  } else if (m_role == "parent") {
+    std::vector<struct sockaddr_in> addrs;
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    //addr.sin_port = htons(33521);
+    addr.sin_port = htons(6610);
+    addrs.push_back(addr);
+
+    m_client->net(&addrs[0], addrs.size(), 8);
+    m_client->start();
+  }
+  return true;
 }
 
 bool LookaSearchd::Process(
-  const HttpRequest& request, std::string& reply, std::string& extension)
+  const SearchRequest& request, std::string& reply, std::string& extension)
 {
   struct timeval parse_start;
   struct timeval segment_start;
@@ -86,17 +120,17 @@ bool LookaSearchd::Process(
 
   // parse query
   gettimeofday(&parse_start, NULL);
-  LookaRequest req;
-  if (!req.Parse(request))
-    return false;
-  extension = req.dataformat;
+  LookaRequest looka_request;
+  looka_request.ParseFilter(request.filter_string());
+  looka_request.ParseFilterRange(request.filter_range_string());
+  extension = request.dataformat();
   wastetime_parse = WASTE_TIME_US(parse_start);
 
   // segment query
   gettimeofday(&segment_start, NULL);
   std::vector<SegmentToken> segtokens;
   pthread_mutex_lock(&m_seg_lock);
-  m_segmenter->Segment(req.query, segtokens);
+  m_segmenter->Segment(request.query(), segtokens);
   pthread_mutex_unlock(&m_seg_lock);
   wastetime_segment = WASTE_TIME_US(segment_start);
 
@@ -114,15 +148,15 @@ bool LookaSearchd::Process(
     DocAttr*& attr = (*m_summary)[id++];
 
     // match filter
-    if (DropByFilter(attr, req.filter))
+    if (DropByFilter(attr, looka_request.filter))
       continue;
 
     // match filter range
-    if (DropByFilterRange(attr, req.filter_range))
+    if (DropByFilterRange(attr, looka_request.filter_range))
       continue;
 
     // match doc
-    if (total >= req.offset && total < req.offset + req.limit) {
+    if (total >= request.offset() && total < request.offset() + request.limit()) {
       docs.push_back(attr);
     }
     total++;
@@ -141,17 +175,17 @@ bool LookaSearchd::Process(
     std::make_pair("search_cost", intToString(wastetime_search) + "us"));
 
   LookaResultPacker* packer =
-    m_result_packer_wrapper->GetResultPacker(req.dataformat);
-  reply = packer->PackResult(m_source_cfg, req.query, strtokens,
+    m_result_packer_wrapper->GetResultPacker(request.dataformat());
+  reply = packer->PackResult(m_source_cfg, request.query(), strtokens,
     docs, m_attr_names, inter, m_inverter, extra, wastetime_pack);
 
   delete inter;
 
-  _INFO("[query %s] [filter %s] [filter_range %s]
-    [total_found %d] [return_num %d] [cost(%d %d %d %d) %dus]",
-    req.query.c_str(),
-    req.filter_string.c_str(),
-    req.filter_range_string.c_str(),
+  _INFO("[query %s] [filter %s] [filter_range %s] "
+    "[total_found %d] [return_num %d] [cost(%d %d %d %d) %dus]",
+    request.query().c_str(),
+    request.filter_string().c_str(),
+    request.filter_range_string().c_str(),
     total,
     static_cast<int>(docs.size()),
     wastetime_parse,
@@ -159,8 +193,32 @@ bool LookaSearchd::Process(
     wastetime_search,
     wastetime_pack,
     wastetime_parse + wastetime_segment + wastetime_search + wastetime_pack);
-
   return true;
+}
+
+bool LookaSearchd::Process(
+  const HttpRequest& request, std::string& reply, std::string& extension)
+{
+  LookaRequest looka_request;
+  if (!looka_request.Parse(request))
+    return false;
+  SearchRequest search_request;
+  if (TransformRequest(looka_request, search_request))
+    return false;
+
+  if (m_role == "parent") {
+    std::string serialized_str;
+    search_request.set_request_id(1);
+    if (search_request.SerializeToString(&serialized_str)) {
+      const unsigned char* data = (const unsigned char*)&serialized_str[0];
+      size_t len = (size_t)serialized_str.length();
+      m_client->send(0, data, len, 3);
+      return true;
+    }
+  } else if (m_role == "leaf") {
+    return Process(search_request, reply, extension);
+  }
+  return false;
 }
 
 bool LookaSearchd::GetAttrNameIndex(
@@ -224,4 +282,49 @@ bool LookaSearchd::DropByFilterRange(
   const DocAttr* attr, const LookaRequest::FilterRange_t& filter_range)
 {
   return false;
+}
+
+int LookaSearchd::TcpClientSendCallback(int fd, int server_id, int ret)
+{
+  _INFO("send fd:%d server_id:%d ret:%d", fd, server_id, ret);
+  return 0;
+}
+
+int LookaSearchd::TcpClientRecvHandleData(
+  const unsigned char* buf, int size, const struct sockaddr_in& addr)
+{
+  return 0;
+}
+
+int LookaSearchd::TcpServerSendCallback(int fd, int ret)
+{
+  return 0;
+}
+
+int LookaSearchd::TcpServerRecvHandleData(
+  int fd, const unsigned char* buf, int size, const sockaddr_in& addr)
+{
+  _INFO("receive a data from fd:%d size:%d", fd, size);
+  SearchRequest search_request;
+  search_request.ParseFromString(std::string((const char*)buf, size));
+  std::string reply;
+  std::string extension;
+  if (Process(search_request, reply, extension)) {
+    // m_server->send(fd, (const unsigned char*)(reply.c_str()), reply.length()+1, 3);
+  }
+  return 0;
+}
+
+int LookaSearchd::TransformRequest(
+  const LookaRequest& looka_request, SearchRequest& search_request)
+{
+  search_request.set_query(looka_request.query);
+  search_request.set_index(looka_request.index);
+  search_request.set_charset(looka_request.charset);
+  search_request.set_dataformat(looka_request.dataformat);
+  search_request.set_limit(looka_request.limit);
+  search_request.set_offset(looka_request.offset);
+  search_request.set_filter_string(looka_request.filter_string);
+  search_request.set_filter_range_string(looka_request.filter_range_string);
+  return 0;
 }
