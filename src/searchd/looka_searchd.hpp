@@ -22,11 +22,13 @@ public:
   virtual ~LookaSearchd();
 
   bool Init();
-  virtual bool Process(const HttpRequest& request, std::string& reply, std::string& extension);
+  virtual bool Process(
+    const HttpRequest& request, std::string& reply, std::string& extension);
 
 private:
   bool DropByFilter(const DocAttr* attr, const LookaRequest::Filter_t& filter);
-  bool DropByFilterRange(const DocAttr* attr, const LookaRequest::FilterRange_t& filter_range);
+  bool DropByFilterRange(
+    const DocAttr* attr, const LookaRequest::FilterRange_t& filter_range);
   bool GetAttrNameIndex(const std::string& s, DocAttrType& type, int& index);
 
 public:

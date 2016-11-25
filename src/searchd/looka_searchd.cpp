@@ -73,7 +73,8 @@ bool LookaSearchd::Init()
   delete reader;
 }
 
-bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::string& extension)
+bool LookaSearchd::Process(
+  const HttpRequest& request, std::string& reply, std::string& extension)
 {
   struct timeval parse_start;
   struct timeval segment_start;
@@ -106,7 +107,8 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   std::vector<DocAttr*> docs;
   LookaIntersect* inter = new LookaIntersect();
   std::vector<std::string> strtokens;
-  for (size_t i=0; strtokens.size()<segtokens.size(); strtokens.push_back(segtokens[i++].str));
+  for (size_t i=0; strtokens.size()<segtokens.size();
+    strtokens.push_back(segtokens[i++].str));
   inter->SetTokens(strtokens, m_inverter);
   while ((id = inter->Seek(id)) != kIllegalLocalDocID) {
     DocAttr*& attr = (*m_summary)[id++];
@@ -129,19 +131,29 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
 
   // pack result
   std::vector<std::pair<std::string, std::string> > extra;
-  extra.push_back(std::make_pair("total_found",  intToString(total)));
-  extra.push_back(std::make_pair("parse_cost",   intToString(wastetime_parse) + "us"));
-  extra.push_back(std::make_pair("segment_cost", intToString(wastetime_segment) + "us"));
-  extra.push_back(std::make_pair("search_cost",  intToString(wastetime_search) + "us"));
+  extra.push_back(
+    std::make_pair("total_found", intToString(total)));
+  extra.push_back(
+    std::make_pair("parse_cost", intToString(wastetime_parse) + "us"));
+  extra.push_back(
+    std::make_pair("segment_cost", intToString(wastetime_segment) + "us"));
+  extra.push_back(
+    std::make_pair("search_cost", intToString(wastetime_search) + "us"));
 
-  LookaResultPacker* packer = m_result_packer_wrapper->GetResultPacker(req.dataformat);
-  reply = packer->PackResult(m_source_cfg, req.query, strtokens, docs, m_attr_names, inter, m_inverter, extra, wastetime_pack);
+  LookaResultPacker* packer =
+    m_result_packer_wrapper->GetResultPacker(req.dataformat);
+  reply = packer->PackResult(m_source_cfg, req.query, strtokens,
+    docs, m_attr_names, inter, m_inverter, extra, wastetime_pack);
 
   delete inter;
 
-  _INFO("[query %s] [filter %s] [filter_range %s] [total_found %d] [return_num %d] [cost(%d %d %d %d) %dus]",
-    req.query.c_str(), req.filter_string.c_str(), req.filter_range_string.c_str(),
-    total, static_cast<int>(docs.size()),
+  _INFO("[query %s] [filter %s] [filter_range %s]
+    [total_found %d] [return_num %d] [cost(%d %d %d %d) %dus]",
+    req.query.c_str(),
+    req.filter_string.c_str(),
+    req.filter_range_string.c_str(),
+    total,
+    static_cast<int>(docs.size()),
     wastetime_parse,
     wastetime_segment,
     wastetime_search,
@@ -151,7 +163,8 @@ bool LookaSearchd::Process(const HttpRequest& request, std::string& reply, std::
   return true;
 }
 
-bool LookaSearchd::GetAttrNameIndex(const std::string& s, DocAttrType& type, int& index)
+bool LookaSearchd::GetAttrNameIndex(
+  const std::string& s, DocAttrType& type, int& index)
 {
   if (!m_attr_names)
     return false;
@@ -174,7 +187,8 @@ bool LookaSearchd::GetAttrNameIndex(const std::string& s, DocAttrType& type, int
   return found;
 }
 
-bool LookaSearchd::DropByFilter(const DocAttr* attr, const LookaRequest::Filter_t& filter)
+bool LookaSearchd::DropByFilter(
+  const DocAttr* attr, const LookaRequest::Filter_t& filter)
 {
   bool hit = false;
   int idx;
@@ -197,7 +211,8 @@ bool LookaSearchd::DropByFilter(const DocAttr* attr, const LookaRequest::Filter_
       s = attr->s->GetString(idx);
     }
 
-    if (std::find(filter_values.begin(), filter_values.end(), s) == filter_values.end()) {
+    if (std::find(filter_values.begin(), filter_values.end(), s) ==
+      filter_values.end()) {
       hit = true;
       break;
     }
@@ -205,7 +220,8 @@ bool LookaSearchd::DropByFilter(const DocAttr* attr, const LookaRequest::Filter_
   return hit;
 }
 
-bool LookaSearchd::DropByFilterRange(const DocAttr* attr, const LookaRequest::FilterRange_t& filter_range)
+bool LookaSearchd::DropByFilterRange(
+  const DocAttr* attr, const LookaRequest::FilterRange_t& filter_range)
 {
   return false;
 }

@@ -16,7 +16,8 @@ std::string LookaResultPacker::PackResult(
 {
   std::vector<std::pair<std::string, std::string> > summary;
   summary.push_back(std::make_pair("query", query));
-  summary.push_back(std::make_pair("doc_num", intToString(static_cast<int>(docs.size()))));
+  summary.push_back(
+    std::make_pair("doc_num", intToString(static_cast<int>(docs.size()))));
   std::copy(extra.begin(), extra.end(), std::back_inserter(summary));
 
   return PackResultInternal(source, summary, docs, attrnames, wastetime_us);
@@ -203,7 +204,8 @@ LookaResultPackerWrapper::~LookaResultPackerWrapper()
   delete m_xml_packer;
 }
 
-LookaResultPacker* LookaResultPackerWrapper::GetResultPacker(const std::string& format)
+LookaResultPacker* LookaResultPackerWrapper::GetResultPacker(
+  const std::string& format)
 {
   if (strcasecmp(format.c_str(), "json") == 0) {
     return m_json_packer;

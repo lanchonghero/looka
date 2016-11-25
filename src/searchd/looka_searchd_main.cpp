@@ -33,7 +33,8 @@ void usage(const char* bin_name)
   printf("        %s [options]\n\n", bin_name);
   printf("Options:\n");
   printf("        -h:             Show help messages.\n");
-  printf("        -f file:        The configuration file.(default is \"%s\")\n", DEFAULT_CONFIG_FILENAME);
+  printf("        -f file:        The configuration file.(default is \"%s\")\n",
+    DEFAULT_CONFIG_FILENAME);
 }
 
 int main(int argc, char** argv)
@@ -62,13 +63,16 @@ int main(int argc, char** argv)
   std::vector<std::string> index_names;
   std::map<std::string, LookaConfigSource*> lc_source;
   std::map<std::string, LookaConfigIndex*>  lc_index;
-  typedef std::map<std::string, LookaConfigSource*>::iterator lc_source_iterator_t;
-  typedef std::map<std::string, LookaConfigIndex*>::iterator  lc_index_iterator_t;
+  typedef std::map<std::string, LookaConfigSource*>::iterator
+    lc_source_iterator_t;
+  typedef std::map<std::string, LookaConfigIndex*>::iterator
+    lc_index_iterator_t;
 
   source_names = parser.GetSectionNames(LookaConfigSource::mSectionTag);
   index_names  = parser.GetSectionNames(LookaConfigIndex::mSectionTag);
   for (unsigned int i = 0; i < source_names.size(); i++) {
-    LookaConfigSource* source_cfg = new LookaConfigSource(&parser, source_names[i]);
+    LookaConfigSource* source_cfg =
+      new LookaConfigSource(&parser, source_names[i]);
     lc_source.insert(make_pair(source_names[i], source_cfg));
   }
   for (unsigned int i = 0; i < index_names.size(); i++) {
