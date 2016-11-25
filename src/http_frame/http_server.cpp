@@ -152,7 +152,7 @@ int HttpServer::HandleRequest(int fd, HttpReply& reply)
     }
     if (HttpRequestParser::ParseContent(request, buffer.read_buf[0]) != 0) {
       reply = HttpReply::DirectReply(HttpReply::STATUS_BAD_REQUEST);
-      return -5;
+      return -4;
     }
   }
 
@@ -168,7 +168,7 @@ int HttpServer::HandleRequest(int fd, HttpReply& reply)
     reply.AddHeader("Content-Type", MimeType::ExtensionToType(extension));
   } else {
     reply = HttpReply::DirectReply(HttpReply::STATUS_NOT_FOUND);
-    return -4;
+    return -5;
   }
 
   return 0;
@@ -179,7 +179,7 @@ int HttpServer::SendReply(int fd, HttpReply& reply)
   reply.AddHeader("Date", GetServerTime());
   reply.AddHeader("Server", m_server_name);
 
-  timeval timeout = {0, HTTP_READ_TIMEOUT * 1000};
+  timeval timeout = {0, HTTP_WRITE_TIMEOUT * 1000};
   std::string write_buf = reply.ToString();
   if (WriteTimeout(fd, write_buf.c_str(), write_buf.length(), &timeout) !=
       static_cast<int>(write_buf.length())) {

@@ -9,6 +9,7 @@
 #define HTTP_MAX_FD             1024
 #define HTTP_READ_BUF_SIZE      1024
 #define HTTP_READ_TIMEOUT       50
+#define HTTP_WRITE_TIMEOUT      50
 #define HTTP_HEADER_MAX_LENGTH  1024
 
 #define SOCK_SEND_BUF_SIZE      (20 * 1024 * 1024)
