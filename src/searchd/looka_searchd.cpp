@@ -147,8 +147,8 @@ bool LookaSearchd::Process(
 
   delete inter;
 
-  _INFO("[query %s] [filter %s] [filter_range %s]
-    [total_found %d] [return_num %d] [cost(%d %d %d %d) %dus]",
+  _INFO("[query %s] [filter %s] [filter_range %s] "
+    "[total_found %d] [return_num %d] [cost(%d %d %d %d) %dus]",
     req.query.c_str(),
     req.filter_string.c_str(),
     req.filter_range_string.c_str(),
